@@ -1,0 +1,15 @@
+data/
+data/*
+Foundations AI Final Project Data/
+Foundations AI Final Project Data/*
+
+
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.git
+.vscode
+*.ipynb
+venv/
+env/

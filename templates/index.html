@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="{{ 'zh-CN' if session.get('language') == 'zh' else 'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ "糖尿病风险预测系统" if session.get('language') == 'zh' else "Diabetes Risk Assessment System" }}</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <div class="container py-5">
+        <!-- Language Selector -->
+        <div class="d-flex justify-content-end mb-3">
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" id="languageDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                    <i class="fas fa-globe me-1"></i> {{ languages[session.get('language', 'en')] }}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="languageDropdown">
+                    {% for code, name in languages.items() %}
+                    <li><a class="dropdown-item {% if session.get('language', 'en') == code %}active{% endif %}" href="{{ url_for('change_language', language=code) }}">{{ name }}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-lg-8 mx-auto">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="text-center font-weight-light my-2">
+                            <i class="fas fa-heartbeat me-2"></i>{{ "糖尿病风险评估系统" if session.get('language') == 'zh' else "Diabetes Risk Assessment System" }}
+                        </h3>
+                    </div>
+                    <div class="card-body">
+                        <!-- 可能的提示消息 -->
+                        {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                        {% for category, message in messages %}
+                        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                            {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        {% endfor %}
+                        {% endif %}
+                        {% endwith %}
+
+                        <!-- 表单介绍 -->
+                        <div class="mb-4">
+                            <p class="lead">
+                                {% if session.get('language') == 'zh' %}
+                                完成这份评估问卷，了解您的糖尿病风险水平。此评估基于临床研究数据，但不构成医疗诊断。
+                                {% else %}
+                                Complete this assessment to understand your diabetes risk level. This assessment is based on clinical research data but does not constitute medical diagnosis.
+                                {% endif %}
+                            </p>
+                            <div class="alert alert-info">
+                                <i class="fas fa-info-circle me-2"></i>
+                                {% if session.get('language') == 'zh' %}
+                                填写过程大约需要3-5分钟。您可以跳过不确定的问题，系统会使用默认值。
+                                {% else %}
+                                This assessment takes approximately 3-5 minutes to complete. You can skip questions you're unsure about, and the system will use default values.
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- 多步骤表单 -->
+                        <form id="assessment-form" action="{{ url_for('predict') }}" method="post">
+                            <!-- 标签页导航 -->
+                            <ul class="nav nav-tabs mb-4" id="formTabs" role="tablist">
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link active" id="basic-tab" data-bs-toggle="tab"
+                                        data-bs-target="#basic" type="button" role="tab" aria-controls="basic"
+                                        aria-selected="true">
+                                        {% if session.get('language') == 'zh' %}基本信息{% else %}Basic Information{% endif %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="health-tab" data-bs-toggle="tab"
+                                        data-bs-target="#health" type="button" role="tab" aria-controls="health"
+                                        aria-selected="false">
+                                        {% if session.get('language') == 'zh' %}健康指标{% else %}Health Metrics{% endif %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="lifestyle-tab" data-bs-toggle="tab"
+                                        data-bs-target="#lifestyle" type="button" role="tab" aria-controls="lifestyle"
+                                        aria-selected="false">
+                                        {% if session.get('language') == 'zh' %}生活方式{% else %}Lifestyle{% endif %}
+                                    </button>
+                                </li>
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="medical-tab" data-bs-toggle="tab"
+                                        data-bs-target="#medical" type="button" role="tab" aria-controls="medical"
+                                        aria-selected="false">
+                                        {% if session.get('language') == 'zh' %}病史{% else %}Medical History{% endif %}
+                                    </button>
+                                </li>
+                            </ul>
+
+                            <!-- 标签页内容 -->
+                            <div class="tab-content" id="formTabContent">
+                                <!-- 基本信息 -->
+                                <div class="tab-pane fade show active" id="basic" role="tabpanel" aria-labelledby="basic-tab">
+                                    <h4 class="mb-3">{% if session.get('language') == 'zh' %}基本信息{% else %}Basic Information{% endif %}</h4>
+                                    
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="age" class="form-label">
+                                                {% if session.get('language') == 'zh' %}年龄{% else %}Age{% endif %} <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="age" name="age" min="18" max="80" required>
+                                                <span class="input-group-text">{% if session.get('language') == 'zh' %}岁{% else %}years{% endif %}</span>
+                                            </div>
+                                            <div class="form-text">
+                                                {% if session.get('language') == 'zh' %}
+                                                请输入18-80岁之间的年龄
+                                                {% else %}
+                                                Please enter age between 18-80 years
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="gender" class="form-label">
+                                                {% if session.get('language') == 'zh' %}性别{% else %}Gender{% endif %} <span class="text-danger">*</span>
+                                            </label>
+                                            <select class="form-select" id="gender" name="gender" required>
+                                                <option value="" selected disabled>
+                                                    {% if session.get('language') == 'zh' %}请选择{% else %}Please select{% endif %}
+                                                </option>
+                                                <option value="male">{% if session.get('language') == 'zh' %}男{% else %}Male{% endif %}</option>
+                                                <option value="female">{% if session.get('language') == 'zh' %}女{% else %}Female{% endif %}</option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="height" class="form-label">
+                                                {% if session.get('language') == 'zh' %}身高{% else %}Height{% endif %} <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="height" name="height" min="100" max="250" required>
+                                                <span class="input-group-text">{% if session.get('language') == 'zh' %}厘米{% else %}cm{% endif %}</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="weight" class="form-label">
+                                                {% if session.get('language') == 'zh' %}体重{% else %}Weight{% endif %} <span class="text-danger">*</span>
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="weight" name="weight" min="30" max="200" step="0.1" required>
+                                                <span class="input-group-text">{% if session.get('language') == 'zh' %}公斤{% else %}kg{% endif %}</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="ethnicity" class="form-label">
+                                            {% if session.get('language') == 'zh' %}种族/民族{% else %}Ethnicity{% endif %}
+                                        </label>
+                                        <select class="form-select" id="ethnicity" name="ethnicity">
+                                            <option value="caucasian">{% if session.get('language') == 'zh' %}白种人{% else %}Caucasian{% endif %}</option>
+                                            <option value="african_american">{% if session.get('language') == 'zh' %}非裔{% else %}African American{% endif %}</option>
+                                            <option value="hispanic">{% if session.get('language') == 'zh' %}拉丁裔{% else %}Hispanic{% endif %}</option>
+                                            <option value="asian">{% if session.get('language') == 'zh' %}亚裔{% else %}Asian{% endif %}</option>
+                                            <option value="other">{% if session.get('language') == 'zh' %}其他{% else %}Other{% endif %}</option>
+                                        </select>
+                                        <div class="form-text">
+                                            {% if session.get('language') == 'zh' %}
+                                            不同种族/民族的糖尿病风险可能有所不同
+                                            {% else %}
+                                            Diabetes risk may vary among different ethnic groups
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-end mt-4">
+                                        <button type="button" class="btn btn-primary next-tab">
+                                            {% if session.get('language') == 'zh' %}下一步{% else %}Next{% endif %} <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 健康指标 -->
+                                <div class="tab-pane fade" id="health" role="tabpanel" aria-labelledby="health-tab">
+                                    <h4 class="mb-3">{% if session.get('language') == 'zh' %}健康指标{% else %}Health Metrics{% endif %}</h4>
+                                    
+                                    <div class="alert alert-secondary mb-4">
+                                        <i class="fas fa-info-circle me-2"></i>
+                                        {% if session.get('language') == 'zh' %}
+                                        如果您不确定具体数值，可以留空，系统将使用平均值进行计算。但提供更准确的数据将获得更准确的风险评估。
+                                        {% else %}
+                                        If you're unsure about specific values, you can leave them blank and the system will use average values for calculation. However, providing more accurate data will result in a more accurate risk assessment.
+                                        {% endif %}
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="systolic" class="form-label">
+                                                {% if session.get('language') == 'zh' %}收缩压 (高压){% else %}Systolic Blood Pressure{% endif %}
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="systolic" name="systolic" min="80" max="220">
+                                                <span class="input-group-text">mmHg</span>
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="diastolic" class="form-label">
+                                                {% if session.get('language') == 'zh' %}舒张压 (低压){% else %}Diastolic Blood Pressure{% endif %}
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="diastolic" name="diastolic" min="40" max="130">
+                                                <span class="input-group-text">mmHg</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="cholesterol" class="form-label">
+                                                {% if session.get('language') == 'zh' %}总胆固醇水平{% else %}Total Cholesterol Level{% endif %}
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="cholesterol" name="cholesterol" min="100" max="400">
+                                                <span class="input-group-text">mg/dL</span>
+                                            </div>
+                                            <div class="form-text">
+                                                {% if session.get('language') == 'zh' %}
+                                                一般健康范围: 125-200 mg/dL
+                                                {% else %}
+                                                Healthy range: 125-200 mg/dL
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="glucose" class="form-label">
+                                                {% if session.get('language') == 'zh' %}空腹血糖{% else %}Fasting Blood Glucose{% endif %}
+                                            </label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="glucose" name="glucose" min="50" max="300">
+                                                <span class="input-group-text">mg/dL</span>
+                                            </div>
+                                            <div class="form-text">
+                                                {% if session.get('language') == 'zh' %}
+                                                一般健康范围: 70-100 mg/dL
+                                                {% else %}
+                                                Healthy range: 70-100 mg/dL
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-secondary prev-tab">
+                                            <i class="fas fa-arrow-left me-1"></i> {% if session.get('language') == 'zh' %}上一步{% else %}Previous{% endif %}
+                                        </button>
+                                        <button type="button" class="btn btn-primary next-tab">
+                                            {% if session.get('language') == 'zh' %}下一步{% else %}Next{% endif %} <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 生活方式 -->
+                                <div class="tab-pane fade" id="lifestyle" role="tabpanel" aria-labelledby="lifestyle-tab">
+                                    <h4 class="mb-3">{% if session.get('language') == 'zh' %}生活方式因素{% else %}Lifestyle Factors{% endif %}</h4>
+
+                                    <div class="mb-3">
+                                        <label for="physical_activity" class="form-label">
+                                            {% if session.get('language') == 'zh' %}身体活动频率{% else %}Physical Activity Level{% endif %} <span class="text-danger">*</span>
+                                        </label>
+                                        <select class="form-select" id="physical_activity" name="physical_activity" required>
+                                            <option value="none">
+                                                {% if session.get('language') == 'zh' %}不活动 (几乎不运动){% else %}Inactive (Almost no exercise){% endif %}
+                                            </option>
+                                            <option value="light">
+                                                {% if session.get('language') == 'zh' %}轻度 (每周1-2次){% else %}Light (1-2 times per week){% endif %}
+                                            </option>
+                                            <option value="moderate" selected>
+                                                {% if session.get('language') == 'zh' %}中度 (每周3-5次){% else %}Moderate (3-5 times per week){% endif %}
+                                            </option>
+                                            <option value="heavy">
+                                                {% if session.get('language') == 'zh' %}大量 (每周5次以上或高强度训练){% else %}Heavy (More than 5 times per week or high-intensity training){% endif %}
+                                            </option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="fruit_veg" class="form-label">
+                                            {% if session.get('language') == 'zh' %}每日蔬果摄入量{% else %}Daily Fruit & Vegetable Intake{% endif %} <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control" id="fruit_veg" name="fruit_veg" min="0" max="20" value="3" required>
+                                            <span class="input-group-text">
+                                                {% if session.get('language') == 'zh' %}份{% else %}servings{% endif %}
+                                            </span>
+                                        </div>
+                                        <div class="form-text">
+                                            {% if session.get('language') == 'zh' %}
+                                            一份约等于一个中等大小的水果或80克蔬菜
+                                            {% else %}
+                                            One serving equals one medium-sized fruit or 80g of vegetables
+                                            {% endif %}
+                                        </div>
+                                    </div>
+
+                                    <div class="row mb-3">
+                                        <div class="col-md-6">
+                                            <label for="smoking" class="form-label">
+                                                {% if session.get('language') == 'zh' %}吸烟状态{% else %}Smoking Status{% endif %}
+                                            </label>
+                                            <select class="form-select" id="smoking" name="smoking">
+                                                <option value="never" selected>
+                                                    {% if session.get('language') == 'zh' %}从不吸烟{% else %}Never smoked{% endif %}
+                                                </option>
+                                                <option value="former">
+                                                    {% if session.get('language') == 'zh' %}过去吸烟{% else %}Former smoker{% endif %}
+                                                </option>
+                                                <option value="current">
+                                                    {% if session.get('language') == 'zh' %}现在吸烟{% else %}Current smoker{% endif %}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label for="alcohol" class="form-label">
+                                                {% if session.get('language') == 'zh' %}饮酒频率{% else %}Alcohol Consumption{% endif %}
+                                            </label>
+                                            <select class="form-select" id="alcohol" name="alcohol">
+                                                <option value="never">
+                                                    {% if session.get('language') == 'zh' %}从不饮酒{% else %}Never{% endif %}
+                                                </option>
+                                                <option value="occasional" selected>
+                                                    {% if session.get('language') == 'zh' %}偶尔饮酒{% else %}Occasional{% endif %}
+                                                </option>
+                                                <option value="regular">
+                                                    {% if session.get('language') == 'zh' %}经常饮酒{% else %}Regular{% endif %}
+                                                </option>
+                                            </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-secondary prev-tab">
+                                            <i class="fas fa-arrow-left me-1"></i> {% if session.get('language') == 'zh' %}上一步{% else %}Previous{% endif %}
+                                        </button>
+                                        <button type="button" class="btn btn-primary next-tab">
+                                            {% if session.get('language') == 'zh' %}下一步{% else %}Next{% endif %} <i class="fas fa-arrow-right ms-1"></i>
+                                        </button>
+                                    </div>
+                                </div>
+
+                                <!-- 病史 -->
+                                <div class="tab-pane fade" id="medical" role="tabpanel" aria-labelledby="medical-tab">
+                                    <h4 class="mb-3">{% if session.get('language') == 'zh' %}病史和症状{% else %}Medical History & Symptoms{% endif %}</h4>
+
+                                    <div class="mb-4">
+                                        <label class="form-label">
+                                            {% if session.get('language') == 'zh' %}糖尿病家族史{% else %}Family History of Diabetes{% endif %} <span class="text-danger">*</span>
+                                        </label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="family_history" id="family_yes" value="yes" required>
+                                            <label class="form-check-label" for="family_yes">
+                                                {% if session.get('language') == 'zh' %}
+                                                是（父母、兄弟姐妹或子女患有糖尿病）
+                                                {% else %}
+                                                Yes (parents, siblings, or children with diabetes)
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="family_history" id="family_no" value="no" checked required>
+                                            <label class="form-check-label" for="family_no">
+                                                {% if session.get('language') == 'zh' %}否{% else %}No{% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label">
+                                            {% if session.get('language') == 'zh' %}高血压病史{% else %}History of Hypertension{% endif %}
+                                        </label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="hypertension_history" id="hypertension_yes" value="yes">
+                                            <label class="form-check-label" for="hypertension_yes">
+                                                {% if session.get('language') == 'zh' %}
+                                                是（已确诊或正在服用降压药）
+                                                {% else %}
+                                                Yes (diagnosed or currently taking medication)
+                                                {% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="hypertension_history" id="hypertension_no" value="no" checked>
+                                            <label class="form-check-label" for="hypertension_no">
+                                                {% if session.get('language') == 'zh' %}否{% else %}No{% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-4">
+                                        <label class="form-label">
+                                            {% if session.get('language') == 'zh' %}您是否有以下症状？（多选）{% else %}Do you have any of the following symptoms? (Select all that apply){% endif %}
+                                        </label>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" id="symptom_thirst" value="increased_thirst">
+                                            <label class="form-check-label" for="symptom_thirst">
+                                                {% if session.get('language') == 'zh' %}口渴增加{% else %}Increased thirst{% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" id="symptom_urination" value="frequent_urination">
+                                            <label class="form-check-label" for="symptom_urination">
+                                                {% if session.get('language') == 'zh' %}尿频{% else %}Frequent urination{% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" id="symptom_weight" value="weight_loss">
+                                            <label class="form-check-label" for="symptom_weight">
+                                                {% if session.get('language') == 'zh' %}不明原因的体重减轻{% else %}Unexplained weight loss{% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" id="symptom_fatigue" value="fatigue">
+                                            <label class="form-check-label" for="symptom_fatigue">
+                                                {% if session.get('language') == 'zh' %}疲劳{% else %}Fatigue{% endif %}
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="checkbox" name="symptoms" id="symptom_vision" value="blurred_vision">
+                                            <label class="form-check-label" for="symptom_vision">
+                                                {% if session.get('language') == 'zh' %}视力模糊{% else %}Blurred vision{% endif %}
+                                            </label>
+                                        </div>
+                                    </div>
+
+                                    <div class="d-flex justify-content-between mt-4">
+                                        <button type="button" class="btn btn-secondary prev-tab">
+                                            <i class="fas fa-arrow-left me-1"></i> {% if session.get('language') == 'zh' %}上一步{% else %}Previous{% endif %}
+                                        </button>
+                                        <button type="submit" class="btn btn-success">
+                                            <i class="fas fa-calculator me-1"></i> {% if session.get('language') == 'zh' %}计算风险{% else %}Calculate Risk{% endif %}
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                    <div class="card-footer text-center py-3">
+                        <div class="small">
+                            <i class="fas fa-lock me-1"></i> 
+                            {% if session.get('language') == 'zh' %}
+                            您提供的信息仅用于风险评估，不会被保存或分享
+                            {% else %}
+                            Your information is used only for risk assessment and will not be saved or shared
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap 5 Bundle with Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS -->
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html> 

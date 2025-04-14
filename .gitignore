@@ -1,0 +1,12 @@
+# Ignore all data folders and their contents
+data/
+data/*
+Foundations AI Final Project Data/
+Foundations AI Final Project Data/*
+
+# Ignore all files in the venv folder
+venv/
+venv/*
+
+# Ignore all files in the __pycache__ folder
+__pycache__/

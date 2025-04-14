@@ -1,0 +1,130 @@
+
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+.risk-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    margin: 1rem;
+    padding: 1.5rem;
+    border-radius: 50%;
+    height: 180px;
+    width: 180px;
+    justify-content: center;
+    position: relative;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.low-risk {
+    background-color: rgba(40, 167, 69, 0.1);
+    border: 2px solid #28a745;
+    color: #28a745;
+}
+
+.medium-risk {
+    background-color: rgba(255, 193, 7, 0.1);
+    border: 2px solid #ffc107;
+    color: #d39e00;
+}
+
+.high-risk {
+    background-color: rgba(220, 53, 69, 0.1);
+    border: 2px solid #dc3545;
+    color: #dc3545;
+}
+
+.risk-label {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-top: 0.5rem;
+}
+
+/* form-label */
+.form-label {
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link {
+    color: #495057;
+    font-weight: 500;
+}
+
+.nav-tabs .nav-link.active {
+    color: #007bff;
+    font-weight: 600;
+}
+
+/* responsive adjustment */
+@media (max-width: 768px) {
+    .risk-indicator {
+        height: 150px;
+        width: 150px;
+        padding: 1rem;
+    }
+    
+    .risk-indicator .display-4 {
+        font-size: 1.8rem;
+    }
+    
+    .risk-label {
+        font-size: 0.9rem;
+    }
+}
+
+/* result page style */
+.recommendations .card-header,
+.risk-factors .card-header,
+.resources .card-header {
+    font-weight: 600;
+}
+
+.list-group-item {
+    border-left: none;
+    border-right: none;
+}
+
+.list-group-item:first-child {
+    border-top: none;
+}
+
+.list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* tab content transition effect */
+.tab-pane {
+    transition: all 0.3s ease-in-out;
+}
+
+/* print style */
+@media print {
+    .btn, 
+    .navbar,
+    .card-footer {
+        display: none !important;
+    }
+    
+    .container {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    body {
+        background-color: white;
+    }
+    
+    .card {
+        border: none !important;
+        box-shadow: none !important;
+    }
+    
+    .card-header {
+        background-color: #f8f9fa !important;
+        color: #212529 !important;
+        border-bottom: 1px solid #dee2e6;
+    }
+} 
