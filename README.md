@@ -1,21 +1,13 @@
 # Diabetes Risk Prediction
 
 ## Project Overview
-This is a machine learning-based diabetes risk assessment system designed to analyze health indicators and lifestyle data to predict the risk of developing diabetes. The system features a bilingual interface (English/Chinese), a user-friendly multi-step form for data collection, and generates personalized risk assessment reports with health recommendations.
+This is a machine learning-based diabetes risk assessment system designed to analyze health indicators and lifestyle data to predict the risk of developing diabetes. The system generates personalized risk assessment reports.
 
 ## Data Sources
 This project utilizes data from the Behavioral Risk Factor Surveillance System (BRFSS) and NHANES:
 - Primary training dataset: diabetes_012_health_indicators_BRFSS2015.csv
 - Contains 21 feature variables including high blood pressure, high cholesterol, BMI, smoking status, physical activity, and other health indicators
 - Training data quality and diversity enhanced using generative algorithms
-
-## Methods and Technologies
-- **Feature Selection**: Genetic algorithm to optimize feature sets, selecting the most predictive subset from the 21 original features
-- **Model Training**: PyTorch implementation of a three-layer neural network (input→32→16→output)
-  - Activation functions: ReLU and Sigmoid
-  - Optimizer: Adam (learning rate=0.01)
-  - Evaluation metrics: Combination of accuracy and AUC score
-- **Web Application**: Built with Flask framework, supporting bilingual interface and providing personalized health recommendations
 
 
 
