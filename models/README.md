@@ -1,35 +1,35 @@
-# 模型目录
+# Models Directory
 
-这个目录用于存放PyTorch模型文件。
+This directory is used to store PyTorch model files.
 
-## 模型文件
+## Model Files
 
-请将训练好的PyTorch模型 `diabetes_model.pt` 放置在此目录下。
+Please place the trained PyTorch model `diabetes_model.pt` in this directory.
 
-## 模型结构
+## Model Structure
 
-糖尿病风险预测模型应该接受以下特征作为输入：
+The diabetes risk prediction model should accept the following features as input:
 
-1. 年龄
-2. 性别
-3. BMI（身体质量指数）
-4. 收缩压
-5. 舒张压
-6. 总胆固醇水平
-7. 空腹血糖
-8. 身体活动频率
-9. 每日蔬果摄入量
-10. 吸烟状态
-11. 饮酒频率
-12. 糖尿病家族史
-13. 高血压病史
-14. 相关症状指标
-15. 种族/民族信息
+1. Age
+2. Gender 
+3. BMI (Body Mass Index)
+4. Systolic Blood Pressure
+5. Diastolic Blood Pressure
+6. Total Cholesterol Level
+7. Fasting Blood Glucose
+8. Physical Activity Frequency
+9. Daily Fruit and Vegetable Intake
+10. Smoking Status
+11. Alcohol Consumption Frequency
+12. Family History of Diabetes
+13. History of Hypertension
+14. Related Symptom Indicators
+15. Race/Ethnicity Information
 
-模型输出应为0-1之间的单一值，表示患糖尿病的风险概率。
+The model output should be a single value between 0-1, representing the probability of diabetes risk.
 
-## 模型加载说明
+## Model Loading Instructions
 
-如果您的模型使用了自定义的架构或需要特殊的加载方式，请修改 `app.py` 中的模型加载代码。
+If your model uses a custom architecture or requires special loading methods, please modify the model loading code in `app.py`.
 
-如果模型不可用，系统会使用基于规则的风险评估逻辑作为后备方案。 
+If the model is unavailable, the system will use rule-based risk assessment logic as a fallback option.

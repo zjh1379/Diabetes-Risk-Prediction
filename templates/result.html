@@ -448,19 +448,16 @@
             </div>
         </div>
     </div>
-
     <!-- Bootstrap 5 Bundle with Popper -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <!-- Custom JS -->
     <script src="{{ url_for('static', filename='js/script.js') }}"></script>
     
-    <!-- 风险仪表盘初始化 -->
+    <!-- Risk gauge initialization -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // 风险百分比
-            const riskPercentage = {{ risk_percentage }};
+            const riskPercentage = parseFloat("{{ risk_percentage }}");
             
-            // 创建仪表盘图表
             const ctx = document.getElementById('riskGauge').getContext('2d');
             const riskGauge = new Chart(ctx, {
                 type: 'doughnut',
@@ -490,20 +487,17 @@
                     }
                 }
             });
-            
-            // 添加中间文本
+
             Chart.register({
                 id: 'textInCenter',
                 beforeDraw: function(chart) {
                     if (chart.config.type === 'doughnut') {
-                        // 中间文本
                         const width = chart.width;
                         const height = chart.height;
                         const ctx = chart.ctx;
                         
                         ctx.restore();
                         
-                        // 风险百分比
                         const fontSize = (height / 114).toFixed(2);
                         ctx.font = fontSize + "em sans-serif";
                         ctx.textBaseline = "middle";
@@ -515,12 +509,14 @@
                         ctx.fillStyle = riskPercentage < 30 ? '#28a745' : (riskPercentage < 60 ? '#ffc107' : '#dc3545');
                         ctx.fillText(text, textX, textY);
                         
-                        // 风险文本
-                        {% if session.get('language') == 'zh' %}
-                        const levelText = riskPercentage < 30 ? '低风险' : (riskPercentage < 60 ? '中度风险' : '高风险');
-                        {% else %}
-                        const levelText = riskPercentage < 30 ? 'Low Risk' : (riskPercentage < 60 ? 'Medium Risk' : 'High Risk');
-                        {% endif %}
+                        const language = "{{ session.get('language') }}";
+                        let levelText;
+                        if(language === 'zh') {
+                            levelText = riskPercentage < 30 ? '低风险' : (riskPercentage < 60 ? '中度风险' : '高风险');
+                        } else {
+                            levelText = riskPercentage < 30 ? 'Low Risk' : (riskPercentage < 60 ? 'Medium Risk' : 'High Risk');
+                        }
+                        
                         ctx.font = (fontSize * 0.5) + "em sans-serif";
                         const levelX = Math.round((width - ctx.measureText(levelText).width) / 2);
                         const levelY = height / 1.35;

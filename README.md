@@ -55,12 +55,5 @@ docker run -p 5000:5000 diabetes-risk-prediction
 - `templates/`: HTML template files
 - `translations/`: Internationalization files
 
-## Model Evaluation
-- Accuracy: 85%+
-- AUC Score: 0.82+
-- Feature selection efficiency: ~7% performance improvement through genetic algorithm optimization
 
-## Disclaimer
-This system is for educational and research purposes only and should not replace professional medical advice. Please consult healthcare professionals for any health concerns.
- 
 

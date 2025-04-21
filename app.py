@@ -154,6 +154,8 @@ def get_localized_recommendations():
 # Home page route
 @app.route('/')
 def index():
+    # Set default language to English
+    session['language'] = 'en'
     return render_template('index.html', languages=LANGUAGES)
 
 # Prediction results route
