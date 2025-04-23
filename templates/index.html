@@ -112,15 +112,8 @@
                                                 {% if session.get('language') == 'zh' %}年龄{% else %}Age{% endif %} <span class="text-danger">*</span>
                                             </label>
                                             <div class="input-group">
-                                                <input type="number" class="form-control" id="age" name="age" min="18" max="80" required>
+                                                <input type="number" class="form-control" id="age" name="age" min="0" max="120" required>
                                                 <span class="input-group-text">{% if session.get('language') == 'zh' %}岁{% else %}years{% endif %}</span>
-                                            </div>
-                                            <div class="form-text">
-                                                {% if session.get('language') == 'zh' %}
-                                                请输入18-80岁之间的年龄
-                                                {% else %}
-                                                Please enter age between 18-80 years
-                                                {% endif %}
                                             </div>
                                         </div>
                                         <div class="col-md-6">
@@ -155,26 +148,6 @@
                                                 <input type="number" class="form-control" id="weight" name="weight" min="30" max="200" step="0.1" required>
                                                 <span class="input-group-text">{% if session.get('language') == 'zh' %}公斤{% else %}kg{% endif %}</span>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    <div class="mb-3">
-                                        <label for="ethnicity" class="form-label">
-                                            {% if session.get('language') == 'zh' %}种族/民族{% else %}Ethnicity{% endif %}
-                                        </label>
-                                        <select class="form-select" id="ethnicity" name="ethnicity">
-                                            <option value="caucasian">{% if session.get('language') == 'zh' %}白种人{% else %}Caucasian{% endif %}</option>
-                                            <option value="african_american">{% if session.get('language') == 'zh' %}非裔{% else %}African American{% endif %}</option>
-                                            <option value="hispanic">{% if session.get('language') == 'zh' %}拉丁裔{% else %}Hispanic{% endif %}</option>
-                                            <option value="asian">{% if session.get('language') == 'zh' %}亚裔{% else %}Asian{% endif %}</option>
-                                            <option value="other">{% if session.get('language') == 'zh' %}其他{% else %}Other{% endif %}</option>
-                                        </select>
-                                        <div class="form-text">
-                                            {% if session.get('language') == 'zh' %}
-                                            不同种族/民族的糖尿病风险可能有所不同
-                                            {% else %}
-                                            Diabetes risk may vary among different ethnic groups
-                                            {% endif %}
                                         </div>
                                     </div>
 

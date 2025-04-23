@@ -191,12 +191,6 @@ def predict():
             else:
                 data['bmi'] = 25.0  # Default BMI value
             
-            # Ethnicity encoding
-            ethnicity = request.form.get('ethnicity', 'other')
-            ethnicities = ['caucasian', 'african_american', 'hispanic', 'asian', 'other']
-            for eth in ethnicities:
-                data[f'ethnicity_{eth}'] = 1 if ethnicity == eth else 0
-            
             # Health metrics
             data['systolic'] = safe_float(request.form.get('systolic'), DEFAULT_FEATURE_MEANS['systolic'])
             data['diastolic'] = safe_float(request.form.get('diastolic'), DEFAULT_FEATURE_MEANS['diastolic'])
@@ -303,9 +297,13 @@ def calculate_sample_risk(data):
     """
     base_risk = 10.0  # Starting risk
     
-    # Age factor
-    if data['age'] > 40:
-        base_risk += (data['age'] - 40) * 0.5
+    # Age factor - adjusted for wider age range
+    if data['age'] < 18:
+        # Children and teenagers have lower baseline risk
+        base_risk = max(5.0, base_risk - (18 - data['age']) * 0.3)
+    elif data['age'] > 40:
+        # Risk increases with age after 40
+        base_risk += min(30, (data['age'] - 40) * 0.5)  # Cap the age contribution
     
     # BMI factor
     if data['bmi'] > 25:
