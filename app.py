@@ -1,6 +1,7 @@
 import os
 import numpy as np
 import torch
+import torch.nn.functional as F
 from flask import Flask, render_template, request, redirect, url_for, flash, jsonify, session, g
 from werkzeug.utils import secure_filename
 # Remove Flask-Babel
@@ -56,7 +57,7 @@ def change_language(language):
     return redirect(request.referrer or url_for('index'))
 
 # Model path configuration
-MODEL_PATH = os.path.join('models', 'diabetes_model.pt')
+MODEL_PATH = os.path.join('models', 'diabetes_model.pth')
 
 # Load model if file exists
 if os.path.exists(MODEL_PATH):
@@ -158,6 +159,18 @@ def index():
     session['language'] = 'en'
     return render_template('index.html', languages=LANGUAGES)
 
+# Helper function for safe float conversion
+def safe_float(value, default=0.0):
+    """
+    Safely convert a value to float, returning default if conversion fails
+    """
+    if value is None or value == '':
+        return default
+    try:
+        return float(value)
+    except (ValueError, TypeError):
+        return default
+
 # Prediction results route
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -167,10 +180,10 @@ def predict():
             data = {}
             
             # Basic information
-            data['age'] = float(request.form.get('age', 0))
+            data['age'] = safe_float(request.form.get('age'), 0)
             data['gender'] = int(request.form.get('gender') == 'male')  # 1 for male, 0 for female
-            data['height'] = float(request.form.get('height', 0))
-            data['weight'] = float(request.form.get('weight', 0))
+            data['height'] = safe_float(request.form.get('height'), 0)
+            data['weight'] = safe_float(request.form.get('weight'), 0)
             
             # Calculate BMI
             if data['height'] > 0 and data['weight'] > 0:
@@ -185,16 +198,16 @@ def predict():
                 data[f'ethnicity_{eth}'] = 1 if ethnicity == eth else 0
             
             # Health metrics
-            data['systolic'] = float(request.form.get('systolic', DEFAULT_FEATURE_MEANS['systolic']))
-            data['diastolic'] = float(request.form.get('diastolic', DEFAULT_FEATURE_MEANS['diastolic']))
-            data['cholesterol'] = float(request.form.get('cholesterol', DEFAULT_FEATURE_MEANS['cholesterol']))
-            data['glucose'] = float(request.form.get('glucose', DEFAULT_FEATURE_MEANS['glucose']))
+            data['systolic'] = safe_float(request.form.get('systolic'), DEFAULT_FEATURE_MEANS['systolic'])
+            data['diastolic'] = safe_float(request.form.get('diastolic'), DEFAULT_FEATURE_MEANS['diastolic'])
+            data['cholesterol'] = safe_float(request.form.get('cholesterol'), DEFAULT_FEATURE_MEANS['cholesterol'])
+            data['glucose'] = safe_float(request.form.get('glucose'), DEFAULT_FEATURE_MEANS['glucose'])
             
             # Lifestyle factors
             activity_map = {'none': 0, 'light': 1, 'moderate': 2, 'heavy': 3}
             data['physical_activity'] = activity_map.get(request.form.get('physical_activity', 'moderate'), 2)
             
-            data['fruit_veg'] = float(request.form.get('fruit_veg', DEFAULT_FEATURE_MEANS['fruit_veg']))
+            data['fruit_veg'] = safe_float(request.form.get('fruit_veg'), DEFAULT_FEATURE_MEANS['fruit_veg'])
             
             smoking_map = {'never': 0, 'former': 1, 'current': 2}
             data['smoking'] = smoking_map.get(request.form.get('smoking', 'never'), 0)
@@ -220,10 +233,18 @@ def predict():
                 features = prepare_features(data)
                 input_tensor = torch.FloatTensor(features).unsqueeze(0)  # Add batch dimension
                 
-                # Predict
+                # Use loaded PyTorch model for prediction
                 with torch.no_grad():
-                    prediction = model(input_tensor)
-                    risk_percentage = prediction.item() * 100  # Convert 0-1 probability to percentage
+                    outputs = model(input_tensor)
+                    # Get prediction probability (assuming model outputs probability values)
+                    if isinstance(outputs, torch.Tensor) and outputs.numel() == 1:
+                        # Single output value case (sigmoid output)
+                        prediction = outputs.item()
+                    else:
+                        # For multi-class cases, use softmax to get class 1 probability
+                        prediction = F.softmax(outputs, dim=1)[0, 1].item()
+                    
+                    risk_percentage = prediction * 100  # Convert to percentage
             else:
                 # If model is unavailable, use sample risk calculation
                 risk_percentage = calculate_sample_risk(data)
@@ -250,22 +271,19 @@ def predict():
 # Prepare input features for model
 def prepare_features(data):
     """
-    Convert user input data to feature vector for model prediction
+    Convert user input data to feature vector for model prediction.
+    Only extracts the first 10 features needed by the model.
     """
-    features = []
-    
-    # Feature order must match model training order
+    # Features needed by the model (first 10)
     feature_names = [
         'age', 'gender', 'bmi', 'systolic', 'diastolic', 
         'cholesterol', 'glucose', 'physical_activity', 'fruit_veg',
-        'smoking', 'alcohol', 'family_history', 'hypertension_history',
-        'symptom_thirst', 'symptom_urination', 'symptom_weight_loss', 
-        'symptom_fatigue', 'symptom_blurred_vision',
-        'ethnicity_caucasian', 'ethnicity_african_american', 
-        'ethnicity_hispanic', 'ethnicity_asian', 'ethnicity_other'
+        'smoking'
     ]
     
-    # Build feature vector with standardization where appropriate
+    features = []
+    
+    # Build feature vector and standardize
     for feature in feature_names:
         if feature in data:
             # Standardize numeric features
