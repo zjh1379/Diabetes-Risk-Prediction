@@ -1,8 +1,7 @@
 # Ignore all data folders and their contents
 data/
 data/*
-Foundations AI Final Project Data/
-Foundations AI Final Project Data/*
+
 
 # Ignore all files in the venv folder
 venv/
